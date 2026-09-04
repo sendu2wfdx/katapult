@@ -1,5 +1,8 @@
 # Katapult  (formerly known as CanBoot)
 
+[![GD32 Firmware](https://github.com/sendu2wfdx/katapult/actions/workflows/gd32-firmware.yaml/badge.svg)](https://github.com/sendu2wfdx/katapult/actions/workflows/gd32-firmware.yaml)
+[![Test Katapult Build](https://github.com/sendu2wfdx/katapult/actions/workflows/test-build.yaml/badge.svg)](https://github.com/sendu2wfdx/katapult/actions/workflows/test-build.yaml)
+
 > Project branch status (2026-09-03): this checkout adds an independent `src/gd32` platform for GD32F303 and GD32E230, with UART bootloader transport on both families and USB/CAN options on GD32F303. The generated application layout reserves 8 KiB and starts Klipper at `0x08002000`. Software builds pass; target-board validation is still required. GD32 USB release configurations use the physically validated single-buffer IN path; the recovered double-buffer path remains an explicit experiment. See `GD32F303_PORTING.md`.
 
 For the reproducible GD32 matrix used by this project, run
@@ -37,14 +40,14 @@ compatibility will be updated over time.
 Katapult also uses Klipper's build system.  The build is configured
 with menuconfig.  The steps to fetch and build are as follows:
 ```
-git clone https://github.com/Arksine/katapult
+git clone https://github.com/sendu2wfdx/katapult
 cd katapult
 make menuconfig
 make
 ```
 
 The menuconfig will present the following options:
-- `Microcontroller Architecture`: Choose between lpc176x, stm32 and rp2040
+- `Microcontroller Architecture`: Choose between gd32, lpc176x, stm32 and rp2040
 - `Processor model`: Options depend on the chosen architecture
 - `Build Katapult deployment application`: See the [deployer](#katapult-deployer)
    section below.
