@@ -34,7 +34,7 @@ jobs:
 
     steps:
       - name: Check out source
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Install Arm toolchain
         run: |
@@ -81,7 +81,7 @@ jobs:
             deployer.bin deployer.elf > SHA256SUMS
 
       - name: Upload firmware artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: katapult-gd32-${{ matrix.target }}
           path: dist/${{ matrix.target }}/
@@ -98,7 +98,7 @@ jobs:
 
     steps:
       - name: Download firmware artifacts
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v8
         with:
           pattern: katapult-gd32-*
           path: release
