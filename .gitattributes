@@ -1,2 +1,5 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+
+# Shell scripts are executed from both Linux and the Windows-hosted T113 WSL tree.
+*.sh text eol=lf

@@ -78,7 +78,7 @@ $(OUT)%.ld: %.lds.S $(OUT)autoconf.h
 $(OUT)katapult.elf: $(OBJS_katapult.elf)
 	@echo "  Linking $@"
 	$(Q)$(CC) $(OBJS_katapult.elf) $(CFLAGS_katapult.elf) -o $@
-	$(Q)scripts/check-gcc.sh $@ $(OUT)compile_time_request.o
+	$(Q)sed 's/\r$$//' scripts/check-gcc.sh | bash -s -- $@ $(OUT)compile_time_request.o
 
 $(OUT)katapult.bin: $(OUT)katapult.elf ./scripts/buildbinary.py
 	@echo "  Creating bin file $@"

@@ -1,4 +1,18 @@
 # Katapult  (formerly known as CanBoot)
+
+> Project branch status (2026-09-03): this checkout adds an independent `src/gd32` platform for GD32F303 and GD32E230, with UART bootloader transport on both families and USB/CAN options on GD32F303. The generated application layout reserves 8 KiB and starts Klipper at `0x08002000`. Software builds pass; target-board validation is still required. GD32 USB release configurations use the physically validated single-buffer IN path; the recovered double-buffer path remains an explicit experiment. See `GD32F303_PORTING.md`.
+
+For the reproducible GD32 matrix used by this project, run
+`./build-gd32.ps1` from Windows. It uses the existing `T113` WSL toolchain and
+32 build jobs. GD32 runtime code is isolated in `src/gd32`; GD32F30x and E23x
+device headers are isolated in `lib/gd32f30x/include` and
+`lib/gd32e23x/include`. The STM32 platform remains independent and unchanged.
+
+GitHub Actions builds all seven GD32 targets on every push and pull request.
+Each job publishes Katapult and deployer BIN/ELF files together with the build
+configuration, code size, toolchain version, source commit, and SHA-256 sums.
+Tags matching `gd32-v*` publish those artifacts as a GitHub release.
+
  Bootloader for ARM Cortex-M MCUs
 
  This bootloader was initially designed for CAN nodes to be used with
@@ -7,8 +21,9 @@
  down to keep the footprint minimal. In addition to CAN, Katapult now
  supports USB and UART interfaces.
 
-Currently lpc176x, stm32 and rp2040 MCUs are supported.  CAN support is currently
-limited to stm32 F-series and rp2040 devices.
+Upstream supports lpc176x, stm32 and rp2040 MCUs, with CAN primarily on STM32
+F-series and RP2040 devices. This project branch additionally implements the
+GD32 targets described above.
 
 Katapult is licensed under the [GNU GPL v3](/LICENSE).
 

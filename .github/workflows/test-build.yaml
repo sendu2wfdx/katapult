@@ -5,7 +5,7 @@ jobs:
   build:
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
 
     - name: Install Dependencies
       run: |
@@ -13,7 +13,11 @@ jobs:
         sudo apt-get install -y build-essential \
           libnewlib-arm-none-eabi \
           gcc-arm-none-eabi \
-          binutils-arm-none-eabi
+          binutils-arm-none-eabi \
+          python3-pytest
 
-    - name: Run Tests
+    - name: Run Configuration Tests
+      run: python3 -m pytest -q
+
+    - name: Build All Test Configurations
       run: ./scripts/test-build.sh 2>&1

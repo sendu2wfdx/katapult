@@ -1,0 +1,123 @@
+name: GD32 Firmware
+
+on:
+  push:
+    branches:
+      - master
+    tags:
+      - "gd32-v*"
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: gd32-firmware-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build ${{ matrix.target }}
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - f303xb-serial
+          - f303xc-serial
+          - f303xe-serial
+          - f303xc-usb
+          - f303xc-can
+          - e230-pa23
+          - e230-pa910
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v6
+
+      - name: Install Arm toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            build-essential \
+            libnewlib-arm-none-eabi \
+            gcc-arm-none-eabi \
+            binutils-arm-none-eabi
+
+      - name: Build firmware
+        env:
+          JOBS: "2"
+        run: ./scripts/build-gd32-matrix.sh "${{ matrix.target }}"
+
+      - name: Collect firmware and metadata
+        env:
+          TARGET: ${{ matrix.target }}
+        run: |
+          case "$TARGET" in
+            f303xb-serial) config=test/configs/gd32f303xb-f009-serial.config ;;
+            f303xc-serial) config=test/configs/gd32f303xc-f009-serial.config ;;
+            f303xe-serial) config=test/configs/gd32f303xe-f009-serial.config ;;
+            f303xc-usb) config=test/configs/gd32f303xc-usb.config ;;
+            f303xc-can) config=test/configs/gd32f303xc-canbus.config ;;
+            e230-pa23) config=test/configs/gd32e230x8-serial-pa2-pa3.config ;;
+            e230-pa910) config=test/configs/gd32e230x8-serial-pa9-pa10.config ;;
+            *) exit 2 ;;
+          esac
+
+          mkdir -p "dist/$TARGET"
+          cp "build-gd32/$TARGET/katapult.bin" "dist/$TARGET/"
+          cp "build-gd32/$TARGET/katapult.elf" "dist/$TARGET/"
+          cp "build-gd32/$TARGET/deployer.bin" "dist/$TARGET/"
+          cp "build-gd32/$TARGET/deployer.elf" "dist/$TARGET/"
+          cp "$config" "dist/$TARGET/build.config"
+          arm-none-eabi-size "build-gd32/$TARGET/katapult.elf" \
+            > "dist/$TARGET/SIZE.txt"
+          arm-none-eabi-gcc --version | head -n 1 \
+            > "dist/$TARGET/TOOLCHAIN.txt"
+          git rev-parse HEAD > "dist/$TARGET/SOURCE_COMMIT.txt"
+          cd "dist/$TARGET"
+          sha256sum build.config katapult.bin katapult.elf \
+            deployer.bin deployer.elf > SHA256SUMS
+
+      - name: Upload firmware artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: katapult-gd32-${{ matrix.target }}
+          path: dist/${{ matrix.target }}/
+          if-no-files-found: error
+          retention-days: 30
+
+  release:
+    name: Publish tagged release
+    if: startsWith(github.ref, 'refs/tags/gd32-v')
+    needs: build
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download firmware artifacts
+        uses: actions/download-artifact@v5
+        with:
+          pattern: katapult-gd32-*
+          path: release
+
+      - name: Create release bundles
+        run: |
+          mkdir bundles
+          for directory in release/katapult-gd32-*; do
+            name=${directory#release/}
+            tar -C "$directory" -czf "bundles/$name.tar.gz" .
+          done
+          cd bundles
+          sha256sum ./*.tar.gz > SHA256SUMS
+
+      - name: Publish GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" bundles/* \
+            --title "Katapult GD32 $GITHUB_REF_NAME" \
+            --generate-notes \
+            --verify-tag
