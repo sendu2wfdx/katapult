@@ -122,6 +122,9 @@ config HAVE_STM32_USBFS
 config HAVE_STM32_USBOTG
     bool
     default y if MACH_STM32F2 || MACH_STM32F4 || MACH_STM32H7
+config STM32_USB_DOUBLE_BUFFER_TX
+    bool
+    default y
 config HAVE_STM32_CANBUS
     bool
     default y if MACH_STM32F1 || MACH_STM32F2 || MACH_STM32F4x5 || MACH_STM32F446 || MACH_STM32F0x2
@@ -324,6 +327,15 @@ config STM32F0_TRIM
         useful if the factory default internal clock is not accurate.
         Default is 16 (use factory default). Each increment increases
         the clock rate by ~240KHz.
+
+config STM32F4_GD32_USB_INIT_WORKAROUND
+    bool "GD32F4 USB init workaround" if LOW_LEVEL_OPTIONS
+    depends on MACH_STM32F4x5 && USBSERIAL
+    default n
+    help
+        Enable a USB initialization workaround for GD32F4 clones
+        (including GD32F425) that may fail to enumerate after
+        bootloader handoff.
 
 
 ######################################################################
